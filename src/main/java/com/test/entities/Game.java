@@ -1,5 +1,7 @@
 package com.test.entities;
 
+import lombok.Data;
+
 import javax.persistence.*;
 
 /**
@@ -7,6 +9,7 @@ import javax.persistence.*;
  */
 @Table(name = "GAME")
 @Entity
+@Data
 public class Game {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
