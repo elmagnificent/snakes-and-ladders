@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.test.model.ProcessingException;
 import com.test.model.api.JsonRpcRequest;
 import com.test.model.api.JsonRpcResponse;
+import com.test.services.DiceService;
 import com.test.services.GameService;
 import com.test.utils.ParsingUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,18 +24,21 @@ import java.util.concurrent.CompletableFuture;
 @RestController
 @RequestMapping("/api/v1")
 public class ApiController {
+    public static final int MAX_DICE_ROLL = 6;
     private static final long REQUEST_TIMEOUT_MS = 30_000;
 
     private final ObjectMapper objectMapper;
     private final GameService gameService;
+    private final DiceService diceService;
 
     private final ResponseEntity<JsonRpcResponse> timeoutResponse;
     private final ResponseEntity<JsonRpcResponse> serverErrorResponse;
 
     @Autowired
-    public ApiController(ObjectMapper objectMapper, GameService gameService) {
+    public ApiController(ObjectMapper objectMapper, GameService gameService, DiceService diceService) {
         this.objectMapper = objectMapper;
         this.gameService = gameService;
+        this.diceService = diceService;
 
         final JsonRpcResponse timeoutJsonRpcResponse
             = JsonRpcResponse.newError(null, ProcessingException.REQUEST_TIMED_OUT, "Processing");
@@ -80,6 +84,8 @@ public class ApiController {
                 return getGame(request);
             } else if ("move".equals(method)) {
                 return moveToken(request);
+            } else if ("rollDice".equals(method)) {
+                return getDiceRoll(request);
             }
 
             final JsonRpcResponse response
@@ -100,7 +106,16 @@ public class ApiController {
     private ResponseEntity<JsonRpcResponse> moveToken(JsonRpcRequest request) {
         Long gameId = ParsingUtils.getNullableLongParam(request, "gameId");
         int tokenMoved = ParsingUtils.getIntParam(request, "tokenMoved");
+        if (tokenMoved < 1 || tokenMoved > MAX_DICE_ROLL) {
+            return new ResponseEntity<>(JsonRpcResponse.newError(null, ProcessingException.INVALID_PARAMS,
+                "Move should be from 1 to " + MAX_DICE_ROLL), HttpStatus.BAD_REQUEST);
+        }
         final JsonRpcResponse response = JsonRpcResponse.newResult(request.getId(), gameService.moveToken(gameId, tokenMoved));
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    private ResponseEntity<JsonRpcResponse> getDiceRoll(JsonRpcRequest request) {
+        final JsonRpcResponse response = JsonRpcResponse.newResult(request.getId(), diceService.getRoll());
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
