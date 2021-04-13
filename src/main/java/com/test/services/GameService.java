@@ -9,6 +9,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class GameService {
+    private static final int MAX_POSITION = 100;
+
     @Autowired
     private GameRepository gameRepository;
 
@@ -33,7 +35,11 @@ public class GameService {
             entity = new Game();
             entity.setTokenPosition(tokenMoved);
         } else {
-            entity.setTokenPosition(entity.getTokenPosition() + tokenMoved);
+            int nextPosition = entity.getTokenPosition() + tokenMoved;
+            if (nextPosition > MAX_POSITION) {
+                return new GameDTO(entity.getId(), entity.getTokenPosition());
+            }
+            entity.setTokenPosition(nextPosition);
         }
         entity = gameRepository.save(entity);
         return new GameDTO(entity.getId(), entity.getTokenPosition());
