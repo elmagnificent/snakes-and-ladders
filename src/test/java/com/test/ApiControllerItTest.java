@@ -130,6 +130,38 @@ public class ApiControllerItTest {
         assertEquals(ProcessingException.INVALID_PARAMS, response.getBody().getError().getCode());
     }
 
+    @Test
+    public void shouldWinOnlyIfMatchExactly() {
+        JsonRpcRequest request = new JsonRpcRequest();
+        request.setJsonrpc("2.0");
+        request.setId("1");
+        request.setMethod("getGame");
+        ResponseEntity<JsonRpcResponse<GameDTO>> response = post("", request,
+            new ParameterizedTypeReference<JsonRpcResponse<GameDTO>>() {
+            });
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        long gameId = response.getBody().getResult().getId();
+        Map<String, Object> params = new HashMap<>();
+        params.put("gameId", gameId);
+        params.put("tokenMoved", 6);
+        request.setParams(params);
+        request.setMethod("move");
+        for (int i = 0; i < 16; i++) {
+            post("", request, new ParameterizedTypeReference<JsonRpcResponse<GameDTO>>() {
+            });
+        }
+        params.put("tokenMoved", 4);
+        response = post("", request,
+            new ParameterizedTypeReference<JsonRpcResponse<GameDTO>>() {
+            });
+        assertEquals(97, response.getBody().getResult().getPlayerPosition());
+        params.put("tokenMoved", 3);
+        response = post("", request,
+            new ParameterizedTypeReference<JsonRpcResponse<GameDTO>>() {
+            });
+        assertEquals(100, response.getBody().getResult().getPlayerPosition());
+    }
+
     private <T> ResponseEntity<T> post(String urlSuffix, Object payload, ParameterizedTypeReference<T> responseType) {
         return template.exchange("/api/v1" + urlSuffix, HttpMethod.POST, new HttpEntity<>(payload, null), responseType);
     }
