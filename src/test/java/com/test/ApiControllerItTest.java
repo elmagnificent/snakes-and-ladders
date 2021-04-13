@@ -1,5 +1,6 @@
 package com.test;
 
+import com.test.model.ProcessingException;
 import com.test.model.api.GameDTO;
 import com.test.model.api.JsonRpcRequest;
 import com.test.model.api.JsonRpcResponse;
@@ -21,6 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Created by Michael on 12.04.2021.
@@ -94,6 +96,38 @@ public class ApiControllerItTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("1", response.getBody().getId());
         assertEquals(tokenPosition, response.getBody().getResult().getPlayerPosition());
+    }
+
+    @Test
+    public void rollDice_shouldReturn() {
+        JsonRpcRequest request = new JsonRpcRequest();
+        request.setJsonrpc("2.0");
+        request.setId("1");
+        request.setMethod("rollDice");
+        ResponseEntity<JsonRpcResponse<Integer>> response = post("", request,
+            new ParameterizedTypeReference<JsonRpcResponse<Integer>>() {
+            });
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("1", response.getBody().getId());
+        assertTrue(response.getBody().getResult() > 0);
+        assertTrue(response.getBody().getResult() < 7);
+    }
+
+    @Test
+    public void moveIllegal_shouldReturn() {
+        JsonRpcRequest request = new JsonRpcRequest();
+        request.setJsonrpc("2.0");
+        request.setId("1");
+        request.setMethod("move");
+        Map<String, Object> params = new HashMap<>();
+        params.put("gameId", 1);
+        params.put("tokenMoved", 10);
+        request.setParams(params);
+        ResponseEntity<JsonRpcResponse<GameDTO>> response = post("", request,
+            new ParameterizedTypeReference<JsonRpcResponse<GameDTO>>() {
+            });
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals(ProcessingException.INVALID_PARAMS, response.getBody().getError().getCode());
     }
 
     private <T> ResponseEntity<T> post(String urlSuffix, Object payload, ParameterizedTypeReference<T> responseType) {
