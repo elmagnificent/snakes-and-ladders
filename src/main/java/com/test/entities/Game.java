@@ -1,6 +1,8 @@
 package com.test.entities;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 
@@ -10,6 +12,8 @@ import javax.persistence.*;
 @Table(name = "GAME")
 @Entity
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class Game {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

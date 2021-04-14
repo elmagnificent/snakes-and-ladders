@@ -40,7 +40,7 @@ public class ApiControllerItTest {
         request.setJsonrpc("2.0");
         request.setId("1");
         request.setMethod("getGame");
-        ResponseEntity<JsonRpcResponse<GameDTO>> response = post("", request,
+        ResponseEntity<JsonRpcResponse<GameDTO>> response = post(request,
             new ParameterizedTypeReference<JsonRpcResponse<GameDTO>>() {
             });
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -55,7 +55,7 @@ public class ApiControllerItTest {
         request.setId("1");
         request.setMethod("getGame");
         request.setParams(Collections.singletonMap("gameId", 1));
-        ResponseEntity<JsonRpcResponse<GameDTO>> response = post("", request,
+        ResponseEntity<JsonRpcResponse<GameDTO>> response = post(request,
             new ParameterizedTypeReference<JsonRpcResponse<GameDTO>>() {
             });
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -72,7 +72,7 @@ public class ApiControllerItTest {
         Map<String, Object> params = new HashMap<>();
         params.put("gameId", 1);
         request.setParams(params);
-        ResponseEntity<JsonRpcResponse<GameDTO>> response = post("", request,
+        ResponseEntity<JsonRpcResponse<GameDTO>> response = post(request,
             new ParameterizedTypeReference<JsonRpcResponse<GameDTO>>() {
             });
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -83,7 +83,7 @@ public class ApiControllerItTest {
         params.put("tokenMoved", 3);
         tokenPosition += 3;
         request.setMethod("move");
-        response = post("", request, new ParameterizedTypeReference<JsonRpcResponse<GameDTO>>() {
+        response = post(request, new ParameterizedTypeReference<JsonRpcResponse<GameDTO>>() {
         });
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("1", response.getBody().getId());
@@ -91,7 +91,7 @@ public class ApiControllerItTest {
 
         params.put("tokenMoved", 4);
         tokenPosition += 4;
-        response = post("", request, new ParameterizedTypeReference<JsonRpcResponse<GameDTO>>() {
+        response = post(request, new ParameterizedTypeReference<JsonRpcResponse<GameDTO>>() {
         });
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("1", response.getBody().getId());
@@ -104,7 +104,7 @@ public class ApiControllerItTest {
         request.setJsonrpc("2.0");
         request.setId("1");
         request.setMethod("rollDice");
-        ResponseEntity<JsonRpcResponse<Integer>> response = post("", request,
+        ResponseEntity<JsonRpcResponse<Integer>> response = post(request,
             new ParameterizedTypeReference<JsonRpcResponse<Integer>>() {
             });
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -123,7 +123,7 @@ public class ApiControllerItTest {
         params.put("gameId", 1);
         params.put("tokenMoved", 10);
         request.setParams(params);
-        ResponseEntity<JsonRpcResponse<GameDTO>> response = post("", request,
+        ResponseEntity<JsonRpcResponse<GameDTO>> response = post(request,
             new ParameterizedTypeReference<JsonRpcResponse<GameDTO>>() {
             });
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
@@ -136,7 +136,7 @@ public class ApiControllerItTest {
         request.setJsonrpc("2.0");
         request.setId("1");
         request.setMethod("getGame");
-        ResponseEntity<JsonRpcResponse<GameDTO>> response = post("", request,
+        ResponseEntity<JsonRpcResponse<GameDTO>> response = post(request,
             new ParameterizedTypeReference<JsonRpcResponse<GameDTO>>() {
             });
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -147,22 +147,20 @@ public class ApiControllerItTest {
         request.setParams(params);
         request.setMethod("move");
         for (int i = 0; i < 16; i++) {
-            post("", request, new ParameterizedTypeReference<JsonRpcResponse<GameDTO>>() {
+            post(request, new ParameterizedTypeReference<JsonRpcResponse<GameDTO>>() {
             });
         }
         params.put("tokenMoved", 4);
-        response = post("", request,
-            new ParameterizedTypeReference<JsonRpcResponse<GameDTO>>() {
+        response = post(request, new ParameterizedTypeReference<JsonRpcResponse<GameDTO>>() {
             });
         assertEquals(97, response.getBody().getResult().getPlayerPosition());
         params.put("tokenMoved", 3);
-        response = post("", request,
-            new ParameterizedTypeReference<JsonRpcResponse<GameDTO>>() {
+        response = post(request, new ParameterizedTypeReference<JsonRpcResponse<GameDTO>>() {
             });
         assertEquals(100, response.getBody().getResult().getPlayerPosition());
     }
 
-    private <T> ResponseEntity<T> post(String urlSuffix, Object payload, ParameterizedTypeReference<T> responseType) {
-        return template.exchange("/api/v1" + urlSuffix, HttpMethod.POST, new HttpEntity<>(payload, null), responseType);
+    private <T> ResponseEntity<T> post(Object payload, ParameterizedTypeReference<T> responseType) {
+        return template.exchange("/api/v1", HttpMethod.POST, new HttpEntity<>(payload, null), responseType);
     }
 }
